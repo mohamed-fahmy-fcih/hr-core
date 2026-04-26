@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  fullName      String   @map("full_name")
+  email         String   @unique
+  passwordHash  String   @map("password_hash")
+  role          String   @default("user")
+  totalScore    Float    @default(0) @map("total_score")
+  departmentId  String?  @map("department_id")
+  department    Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  skills        Skill[]
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Department {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  users     User[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("departments")
+}
+
+model MasterSkill {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  weight    Int      @default(1)
+  skills    Skill[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("master_skills")
+}
+
+model Skill {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  masterSkillId   String?  @map("master_skill_id")
+  masterSkill     MasterSkill? @relation(fields: [masterSkillId], references: [id], onDelete: SetNull)
+  skillName       String   @map("skill_name")
+  rating          Int
+  weight          Int      @default(1)
+  calculatedScore Float    @map("calculated_score")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("skills")
+}
